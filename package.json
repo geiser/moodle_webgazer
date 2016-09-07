@@ -1,0 +1,26 @@
+{
+  "name": "moodle-block_webgazer",
+  "description": "A webgazer block for Moodle based on http://docs.moodle.org/dev/Blocks",
+  "license": "GPLv3",
+  "authors": [
+    {
+      "name": "Geiser Chalco",
+      "email": "geiser@usp.br"
+    }
+  ],
+  "type": "moodle-block",
+  "require": {
+    "composer/installers": "~1.0"
+  },
+  "extra": {
+    "installer-name": "webgazer"
+  },
+  "devDependencies": {
+    "grunt": "^1.0.1",
+    "grunt-contrib-clean": "^1.0.0",
+    "grunt-contrib-less": "^1.4.0",
+    "grunt-contrib-uglify": "^2.0.0",
+    "grunt-contrib-watch": "^1.0.0",
+    "uglify": "^0.1.5"
+  }
+}

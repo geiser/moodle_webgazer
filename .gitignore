@@ -1,0 +1,8 @@
+# This file intentionally specifies the untracked files that all our git
+# repositories should be ignore. It is recommended not to modify this file
+# in your local clone. 
+
+*~
+*.swp
+.DS_Store
+/node_modules/
