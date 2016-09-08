@@ -15,21 +15,24 @@ class block_webgazer_edit_form extends block_edit_form {
         $mform->setDefault('config_autosavetime', $config->autosavetime);
         $mform->addHelpButton('config_autosavetime', 'autosavetime', 'block_webgazer');
 
-        $mform->addElement('checkbox', 'config_enablescreenshot',
+        $mform->addElement('advcheckbox', 'config_enablescreenshot',
             get_string('enablescreenshot', 'block_webgazer'),
             get_string('enablescreenshot_desc', 'block_webgazer'));
+        $mform->setType('config_enablescreenshot', PARAM_INT);
         $mform->setDefault('config_enablescreenshot', $config->enablescreenshot);
         $mform->addHelpButton('config_enablescreenshot', 'enablescreenshot', 'block_webgazer');
 
-        $mform->addElement('checkbox', 'config_showpredictionpoint',
+        $mform->addElement('advcheckbox', 'config_showpredictionpoint',
             get_string('showpredictionpoint', 'block_webgazer'),
             get_string('showpredictionpoint_desc', 'block_webgazer'));
+        $mform->setType('config_showpredictionpoint', PARAM_INT);
         $mform->setDefault('config_showpredictionpoint', $config->showpredictionpoint);
         $mform->addHelpButton('config_showpredictionpoint', 'showpredictionpoint', 'block_webgazer');
 
-        $mform->addElement('checkbox', 'config_showvideocanvas',
+        $mform->addElement('advcheckbox', 'config_showvideocanvas',
             get_string('showvideocanvas', 'block_webgazer'),
             get_string('showvideocanvas_desc', 'block_webgazer'));
+        $mform->setType('config_showvideocanvas', PARAM_INT);
         $mform->setDefault('config_showvideocanvas', $config->showvideocanvas);
         $mform->addHelpButton('config_showvideocanvas', 'showvideocanvas', 'block_webgazer');
         

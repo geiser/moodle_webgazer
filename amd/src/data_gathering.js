@@ -52,50 +52,53 @@ define(["jquery"], function($) {
             // setup video canvas and take screenshot when webgazer is ready
             var setupIfReady = function() {
                 if (webgazer.isReady()) {
-                    $('#webgazerVideoText').text('');
-                    // show video canvas
-                    if (!isVideoCanvas && params.showvideocanvas) {
-                        var width = 160;
-                        var height = 120;
-                        var topDist = '0px';
-                        var leftDist = '0px';
-                        var container = document.getElementById('webgazerVideoDiv');
-                        container.style.position = 'relative';
+                    if (!isVideoCanvas) {
+                        // put video canvas in the block or label
+                        if (params.showvideocanvas) {
+                            var width = 160;
+                            var height = 120;
+                            var topDist = '0px';
+                            var leftDist = '0px';
+                            var container = document.getElementById('webgazerVideoDiv');
+                            container.style.position = 'relative';
 
-                        $('#webgazerVideoFeed').appendTo('#webgazerVideoDiv');
-                        var video = document.getElementById('webgazerVideoFeed');
-                        video.style.display = 'block';
-                        video.style.position = 'absolute';
-                        video.style.top = topDist;
-                        video.style.left = leftDist;
-                        video.width = width;
-                        video.height = height;
-                        video.style.margin = '0px';
+                            $('#webgazerVideoFeed').appendTo('#webgazerVideoDiv');
+                            var video = document.getElementById('webgazerVideoFeed');
+                            video.style.display = 'block';
+                            video.style.position = 'absolute';
+                            video.style.top = topDist;
+                            video.style.left = leftDist;
+                            video.width = width;
+                            video.height = height;
+                            video.style.margin = '0px';
 
-                        webgazer.params.imgWidth = width;
-                        webgazer.params.imgHeight = height;
+                            webgazer.params.imgWidth = width;
+                            webgazer.params.imgHeight = height;
 
-                        var overlay = document.createElement('canvas');
-                        overlay.id = 'webgazerOverlay';
-                        document.body.appendChild(overlay);
-                        $("#webgazerOverlay").appendTo("#webgazerVideoDiv");
-                        overlay.style.position = 'absolute';
-                        overlay.width = width;
-                        overlay.height = height;
-                        overlay.style.top = topDist;
-                        overlay.style.left = leftDist;
-                        overlay.style.margin = '0px';
+                            var overlay = document.createElement('canvas');
+                            overlay.id = 'webgazerOverlay';
+                            document.body.appendChild(overlay);
+                            $("#webgazerOverlay").appendTo("#webgazerVideoDiv");
+                            overlay.style.position = 'absolute';
+                            overlay.width = width;
+                            overlay.height = height;
+                            overlay.style.top = topDist;
+                            overlay.style.left = leftDist;
+                            overlay.style.margin = '0px';
 
-                        var cl = webgazer.getTracker().clm;
+                            var cl = webgazer.getTracker().clm;
 
-                        function drawLoop() {
-                            requestAnimFrame(drawLoop);
-                            overlay.getContext('2d').clearRect(0,0,width,height);
-                            if (cl.getCurrentPosition()) {
-                                cl.draw(overlay);
+                            function drawLoop() {
+                                requestAnimFrame(drawLoop);
+                                overlay.getContext('2d').clearRect(0,0,width,height);
+                                if (cl.getCurrentPosition()) {
+                                    cl.draw(overlay);
+                                }
                             }
+                            drawLoop();
+                        } else {
+                            $('#webgazerVideoText').text("Webgazer initialized!");
                         }
-                        drawLoop();
                         isVideoCanvas = true;
 
                         // save screenshot
