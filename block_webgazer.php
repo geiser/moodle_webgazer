@@ -78,17 +78,17 @@ class block_webgazer extends block_base {
                 $autosavetime = intval($this->config->autosavetime) * 1000;
             }
 
-            $enablescreenshot = boolval($config->enablescreenshot);
+            $enablescreenshot = !empty($config->enablescreenshot);
             if (!is_null($this->config->enablescreenshot)) {
-                $enablescreenshot = boolval($this->config->enablescreenshot);
+                $enablescreenshot = !empty($this->config->enablescreenshot);
             }
 
-            $showpredictionpoint = boolval($config->showpredictionpoint);
+            $showpredictionpoint = !empty($config->showpredictionpoint);
             if (!is_null($this->config->showpredictionpoint)) {
                 $showpredictionpoint = $this->config->showpredictionpoint;
             }
 
-            $showvideocanvas = boolval($config->showvideocanvas);
+            $showvideocanvas = !empty($config->showvideocanvas);
             if (!is_null($this->config->showvideocanvas)) {
                 $showvideocanvas = $this->config->showvideocanvas;
             }
