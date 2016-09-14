@@ -67,8 +67,8 @@ class block_webgazer extends block_base {
         }
 
         if (!$this->iswebgazerinit && $this->sessionid) {
-            $PAGE->requires->js('/blocks/webgazer/js/webgazer.js', true);
-            $PAGE->requires->js('/blocks/webgazer/js/html2canvas.js', true);
+            $PAGE->requires->js('/blocks/webgazer/js/html2canvas.min.js', true);
+            $PAGE->requires->js('/blocks/webgazer/js/webgazer.no-cache.min.js', true);
         
             $config = get_config('block_webgazer');
 

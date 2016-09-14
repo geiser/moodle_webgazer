@@ -10,12 +10,9 @@ module.exports = function (grunt) {
     grunt.initConfig({
         uglify: {
             my_target: {
-                files: {'amd/build/data_gathering.min.js':
-                           ['amd/src/data_gathering.js'],
-                        'js/html2canvas.min.js':
-                           ['js/html2canvas.js'],
-                        'js/webgazer.min.js':
-                           ['js/webgazer.js']
+                files: {'amd/build/data_gathering.min.js': ['amd/src/data_gathering.js'],
+                        'js/html2canvas.min.js': ['js/html2canvas.js'],
+                        'js/webgazer.no-cache.min.js': ['js/webgazer.js']
                 }
             }
         },
