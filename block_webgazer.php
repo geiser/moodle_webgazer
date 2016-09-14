@@ -129,3 +129,4 @@ class block_webgazer extends block_base {
     }
 
 }
+
