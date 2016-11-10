@@ -11,10 +11,8 @@
  */
 define(["jquery"], function($) {
 
-    var isScreenshot = false;
-    var isVideoCanvas = false;
-    var saveTime = 0;
     var gazerData = [];
+    var mouseTrackingStartTime = 0; // it's also used to indicate that mouse tracking is our webGazer
     var params = {autosavetime:0, enablescreenshot: false,
                   showpredictionpoint: false, showvideocanvas: false};
     
@@ -49,152 +47,193 @@ define(["jquery"], function($) {
          * @param {String} complete url for the ajax.php
          */
         init: function(sessionid, url) {
-            // setup video canvas and take screenshot when webgazer is ready
-            var setupIfReady = function() {
-                if (webgazer.isReady()) {
-                    if (!isVideoCanvas) {
-                        // put video canvas in the block or label
-                        if (params.showvideocanvas) {
-                            var width = 160;
-                            var height = 120;
-                            var topDist = '0px';
-                            var leftDist = '0px';
-                            var container = document.getElementById('webgazerVideoDiv');
-                            container.style.position = 'relative';
-
-                            $('#webgazerVideoFeed').appendTo('#webgazerVideoDiv');
-                            var video = document.getElementById('webgazerVideoFeed');
-                            video.style.display = 'block';
-                            video.style.position = 'absolute';
-                            video.style.top = topDist;
-                            video.style.left = leftDist;
-                            video.width = width;
-                            video.height = height;
-                            video.style.margin = '0px';
-
-                            webgazer.params.imgWidth = width;
-                            webgazer.params.imgHeight = height;
-
-                            var overlay = document.createElement('canvas');
-                            overlay.id = 'webgazerOverlay';
-                            document.body.appendChild(overlay);
-                            $("#webgazerOverlay").appendTo("#webgazerVideoDiv");
-                            overlay.style.position = 'absolute';
-                            overlay.width = width;
-                            overlay.height = height;
-                            overlay.style.top = topDist;
-                            overlay.style.left = leftDist;
-                            overlay.style.margin = '0px';
-
-                            var cl = webgazer.getTracker().clm;
-
-                            function drawLoop() {
-                                requestAnimFrame(drawLoop);
-                                overlay.getContext('2d').clearRect(0,0,width,height);
-                                if (cl.getCurrentPosition()) {
-                                    cl.draw(overlay);
-                                }
-                            }
-                            drawLoop();
-                        } else {
-                            $('#webgazerVideoText').text("Webgazer initialized!");
-                        }
-                        isVideoCanvas = true;
-
-                        // save screenshot
-                        if (!isScreenshot && params.enablescreenshot) {
-                            html2canvas(document.body, {
-                                onrendered: function(canvas) {
-                                    console.log('img: '+canvas.toDataURL("image/jpeg"));
-                                    $.ajax({
-                                        url: url,
-                                        data: {
-                                            sessionid: sessionid,
-                                            action: "savescreenshot",
-                                            screenshot: canvas.toDataURL("image/jpeg", 0.5)},
-                                        method: "POST"
-                                    }).done(function(msg) {
-                                        console.log('savescreenshot: '+msg);
-                                    });
-                                }
-                            });
-                            isScreenshot = true;
-                        }
+            
+            // save a screenshot
+            var saveSessionScreenshot = function {
+                html2canvas(document.body, {
+                    onrendered: function(canvas) {
+                        console.log('img: '+canvas.toDataURL("image/jpeg"));
+                        $.ajax({
+                            url: url,
+                            data: {
+                                sessionid: sessionid,
+                                action: "savescreenshot",
+                                screenshot: canvas.toDataURL("image/jpeg", 0.5)
+                            },
+                            method: "POST"
+                        }).done(function(msg) {
+                            console.log('savescreenshot: '+msg);
+                        });
                     }
-                } else {
-                    setTimeout(setupIfReady, 100);
+                });
+            }
+
+            // setup the web-gazer video canvas
+            var setupWebGazerVideoCanvas = function() {
+                if (!webgazer.isReady) {
+                    setTimeout(setupWebGazerVideoCanvas, 1000);
                 }
+
+                var width = 160;
+                var height = 120;
+                var topDist = '0px';
+                var leftDist = '0px';
+                var container = document.getElementById('webgazerVideoDiv');
+                container.style.position = 'relative';
+
+                $('#webgazerVideoFeed').appendTo('#webgazerVideoDiv');
+                var video = document.getElementById('webgazerVideoFeed');
+                video.style.display = 'block';
+                video.style.position = 'absolute';
+                video.style.top = topDist;
+                video.style.left = leftDist;
+                video.width = width;
+                video.height = height;
+                video.style.margin = '0px';
+
+                webgazer.params.imgWidth = width;
+                webgazer.params.imgHeight = height;
+
+                var overlay = document.createElement('canvas');
+                overlay.id = 'webgazerOverlay';
+                document.body.appendChild(overlay);
+                $("#webgazerOverlay").appendTo("#webgazerVideoDiv");
+                overlay.style.position = 'absolute';
+                overlay.width = width;
+                overlay.height = height;
+                overlay.style.top = topDist;
+                overlay.style.left = leftDist;
+                overlay.style.margin = '0px';
+
+                var cl = webgazer.getTracker().clm;
+                function drawLoop() {
+                    requestAnimFrame(drawLoop);
+                    overlay.getContext('2d').clearRect(0,0,width,height);
+                    if (cl.getCurrentPosition()) {
+                        cl.draw(overlay);
+                    }
+                }
+                drawLoop();
             };
 
-            // save gazer location in the DB, arguments[0] is true for default
-            var saveGazerLocation = function() {
-                var resume = (arguments.length < 1) || arguments[0] == true;
-                console.log('resume: '+resume+' - arguments: '+arguments);
-                webgazer.pause();
-                $.ajax({
-                    url: url,
-                    data: {
-                        sessionid: sessionid,
-                        action: "savegazerdata",
-                        gazerdata: gazerData
-                    },
-                    method: "POST"
-                }).done(function(msg) {
-                    gazerData = [];
-                    if (resume) webgazer.resume();
-                }).fail(function() {
-                    if (resume) webgazer.resume();
-                }).always(function() {
-                    if (resume) webgazer.resume();
+
+            // setting mousetracking as the webgazer
+            var setupMouseTrackingAsWebGazer = function() {
+                mouseTrackingStartTime = $.now();
+                $(document).mousemove(function(e) {
+                    if (webgazer != undefined && webgazer.isReady()) return;
+                    
+                    var xp = data.x + window.pageXOffset;
+                    var yp = data.y + window.pageYOffset;
+
+                    var elapsedTime = $.now() - mouseTrackingStartTime;
+
+                    // Ugly hack to indicate that the webgazer is using
+                    // mouse-tracking instead webcam
+                    // TODO: Add one more field in the DB to inidicate the source of data
+                    elapsedTime = -1*elapsedTime;
+                    gazerData.push({x: e.pageX, y: e.pageY, time: elapsedTime});    
                 });
             };
 
+            var saveGazer = function(callback) {
+                if (gazerData.length > 0) {
+                    if (mouseTrackingStartTime == 0) {
+                        webgazer.pause();
+                    }
+                    $.ajax({
+                        url: url,
+                        data: {
+                            sessionid: sessionid,
+                            action: "savegazerdata",
+                            gazerdata: gazerData
+                        },
+                        method: "POST"
+                    }).done(function(msg) {
+                        gazerData = [];
+                        callback();
+                    }).fail(function() {
+                        callback();
+                    });
+                }
+            };
+
+            // looper to save data from the webgazer
+            var looperAutoSave = function() {
+                saveGazer(function() {
+                    if (mouseTrackingStartTime == 0) {
+                        webgazer.resume();
+                    }
+                });
+                setTimeout(looperAutoSave, params.autosavetime);
+            };
+
             // save data gathering when a user blur the page
-            $(window).blur(function(){
-                webgazer.pause();
-                saveGazerLocation(false);
+            $(window).blur(function() {
+                saveGazer(function() {
+                    // do nothing when finish
+                });
             });
 
             // save data gathering when a user navigate away from the page
             $(window).unload(function(){
-                webgazer.pause();
-                saveGazerLocation(false);
+                saveGazer(function() {
+                    // do nothing when finish
+                });
             });
 
             // resume data gathering when a user focus the page
             $(window).focus(function(){
-                setupIfReady();
-                webgazer.resume();
+                if (mouseTrackingStartTime == 0) {
+                    webgazer.resume();
+                    // setupWebGazerVideoCanvas();
+                }
             });
 
             // start data gathering after load windows
             $(window).load(function() {
+
+                // take the session screenshot as image
+                if (params.enablescreenshot) saveSessionScreenshot();
+
+                // detect compatibility of browser
                 $('#webgazerVideoText').text("You need a compatible browser and webcam to gather data!");
                 if (!webgazer.detectCompatibility()) {
-                    $('#webgazerVideoText').text("Your browser is inconpatible with webgazer!");
-                    return;
+                    $('#webgazerVideoText').text("Your browser is inconpatible with webgazer!."+
+                            "<br/>So, we are using mouse position as webgazer.");
+                    setupMouseTrackingAsWebGazer();
                 }
 
+                // try to use webcam as webgazer -> if fail load mousetracking as webgazer
                 webgazer.setGazeListener(function(data, elapsedTime) {
-                    if (data == null) { return; }
+                    if (data == null) return;
                     var xp = data.x + window.pageXOffset;
                     var yp = data.y + window.pageYOffset;
                     gazerData.push({x: xp, y: yp, time: elapsedTime});
-                    if (params.autosavetime > 0 &&
-                        ((elapsedTime - saveTime) > params.autosavetime)) {
-                       saveTime = elapsedTime;
-                       saveGazerLocation(); 
-                    }
-                    //console.log("[xoffset,yoffset]: [" +
-                    //    window.pageXOffset + ";" +
-                    //    window.pageYOffset + "] - [x;y]: [" +
-                    //    xp + ";" + yp + "] - elapsedTime: " + elapsedTime);
-                }).begin(function () {
-                    $('#webgazerVideoText').text("You need a webcam to use webgazer!");
+                }).begin(function () { // callback function in fail case
+                    $('#webgazerVideoText').text("You need a webcam to use webgazer!"+
+                            "<br/>So, we are using mouse position as webgazer.");
+                    setupMouseTrackingAsWebGazer();
                 }).showPredictionPoints(params.showpredictionpoint);
 
-                setTimeout(setupIfReady, 100);
-            }); 
+                // load video cavas from the webgazer
+                if (params.showvideocanvas) {
+                    setupWebGazerVideoCanvas();
+                } else {
+                    var miniloop = function () {
+                        if (webgazer.isReady()) {
+                            $('#webgazerVideoText').text("Webgazer initialized!");
+                        } else {
+                            setTimeout(miniloop, 1000);
+                        }
+                    }
+                    miniloop();
+                }
+
+                // start auto-save
+                looperAutoSave();
+
+            });
         }
     };
 });
