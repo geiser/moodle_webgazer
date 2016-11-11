@@ -49,7 +49,7 @@ define(["jquery"], function($) {
         init: function(sessionid, url) {
             
             // save a screenshot
-            var saveSessionScreenshot = function {
+            var saveSessionScreenshot = function() {
                 html2canvas(document.body, {
                     onrendered: function(canvas) {
                         console.log('img: '+canvas.toDataURL("image/jpeg"));
@@ -66,30 +66,33 @@ define(["jquery"], function($) {
                         });
                     }
                 });
-            }
+            };
 
             // setup the web-gazer video canvas
             var setupWebGazerVideoCanvas = function() {
-                if (!webgazer.isReady) {
+                if (!webgazer.isReady() || 
+                    document.getElementById('webgazerVideoFeed') == null ||
+                    document.getElementById('webgazerVideoFeed') == undefined) {
                     setTimeout(setupWebGazerVideoCanvas, 1000);
                 }
-
                 var width = 160;
                 var height = 120;
                 var topDist = '0px';
                 var leftDist = '0px';
+                
                 var container = document.getElementById('webgazerVideoDiv');
                 container.style.position = 'relative';
 
-                $('#webgazerVideoFeed').appendTo('#webgazerVideoDiv');
-                var video = document.getElementById('webgazerVideoFeed');
-                video.style.display = 'block';
-                video.style.position = 'absolute';
-                video.style.top = topDist;
-                video.style.left = leftDist;
-                video.width = width;
-                video.height = height;
-                video.style.margin = '0px';
+                var webgazerVideoFeed = document.getElementById('webgazerVideoFeed');
+                container.appendChild(webgazerVideoFeed);
+                
+                webgazerVideoFeed.style.display = 'block';
+                webgazerVideoFeed.style.position = 'absolute';
+                webgazerVideoFeed.style.top = topDist;
+                webgazerVideoFeed.style.left = leftDist;
+                webgazerVideoFeed.width = width;
+                webgazerVideoFeed.height = height;
+                webgazerVideoFeed.style.margin = '0px';
 
                 webgazer.params.imgWidth = width;
                 webgazer.params.imgHeight = height;
@@ -97,6 +100,7 @@ define(["jquery"], function($) {
                 var overlay = document.createElement('canvas');
                 overlay.id = 'webgazerOverlay';
                 document.body.appendChild(overlay);
+                
                 $("#webgazerOverlay").appendTo("#webgazerVideoDiv");
                 overlay.style.position = 'absolute';
                 overlay.width = width;
@@ -114,6 +118,7 @@ define(["jquery"], function($) {
                     }
                 }
                 drawLoop();
+
             };
 
 
@@ -122,10 +127,6 @@ define(["jquery"], function($) {
                 mouseTrackingStartTime = $.now();
                 $(document).mousemove(function(e) {
                     if (webgazer != undefined && webgazer.isReady()) return;
-                    
-                    var xp = data.x + window.pageXOffset;
-                    var yp = data.y + window.pageYOffset;
-
                     var elapsedTime = $.now() - mouseTrackingStartTime;
 
                     // Ugly hack to indicate that the webgazer is using
@@ -197,10 +198,10 @@ define(["jquery"], function($) {
                 if (params.enablescreenshot) saveSessionScreenshot();
 
                 // detect compatibility of browser
-                $('#webgazerVideoText').text("You need a compatible browser and webcam to gather data!");
+                //$('#webgazerVideoText').text("You need a compatible browser and webcam to gather data!");
                 if (!webgazer.detectCompatibility()) {
-                    $('#webgazerVideoText').text("Your browser is inconpatible with webgazer!."+
-                            "<br/>So, we are using mouse position as webgazer.");
+                    $('#webgazerVideoText').text("Your browser is inconpatible with webgazer! "+
+                            "So, we are using mouse position as webgazer.");
                     setupMouseTrackingAsWebGazer();
                 }
 
@@ -211,14 +212,14 @@ define(["jquery"], function($) {
                     var yp = data.y + window.pageYOffset;
                     gazerData.push({x: xp, y: yp, time: elapsedTime});
                 }).begin(function () { // callback function in fail case
-                    $('#webgazerVideoText').text("You need a webcam to use webgazer!"+
-                            "<br/>So, we are using mouse position as webgazer.");
+                    $('#webgazerVideoText').text("You need a webcam to use webgazer! "+
+                            "So, we are using mouse position as webgazer.");
                     setupMouseTrackingAsWebGazer();
                 }).showPredictionPoints(params.showpredictionpoint);
 
                 // load video cavas from the webgazer
                 if (params.showvideocanvas) {
-                    setupWebGazerVideoCanvas();
+                    setTimeout(setupWebGazerVideoCanvas, 1000);
                 } else {
                     var miniloop = function () {
                         if (webgazer.isReady()) {
@@ -231,7 +232,7 @@ define(["jquery"], function($) {
                 }
 
                 // start auto-save
-                looperAutoSave();
+                if (params.autosavetime > 0) looperAutoSave();
 
             });
         }
