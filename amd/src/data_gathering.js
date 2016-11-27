@@ -52,7 +52,7 @@ define(["jquery"], function($) {
             var saveSessionScreenshot = function() {
                 html2canvas(document.body, {
                     onrendered: function(canvas) {
-                        console.log('img: '+canvas.toDataURL("image/jpeg"));
+                        //console.log('img: '+canvas.toDataURL("image/jpeg"));
                         $.ajax({
                             url: url,
                             data: {
@@ -62,25 +62,27 @@ define(["jquery"], function($) {
                             },
                             method: "POST"
                         }).done(function(msg) {
-                            console.log('savescreenshot: '+msg);
+                            //console.log('savescreenshot: '+msg);
                         });
                     }
                 });
             };
 
             // setup the web-gazer video canvas
-            var setupWebGazerVideoCanvas = function() {
-                if (!webgazer.isReady() || 
-                    document.getElementById('webgazerVideoFeed') == null ||
-                    document.getElementById('webgazerVideoFeed') == undefined) {
-                    setTimeout(setupWebGazerVideoCanvas, 1000);
-                }
+            var setupWebGazerVideoCanvas = function() { 
+                
                 var width = 160;
                 var height = 120;
                 var topDist = '0px';
                 var leftDist = '0px';
-                
                 var container = document.getElementById('webgazerVideoDiv');
+
+                if (!webgazer.isReady() || (params.enablescreenshot &&
+                            (container == undefined || container == null))) {
+                    setTimeout(setupWebGazerVideoCanvas, 500);
+                    return;
+                }
+
                 container.style.position = 'relative';
 
                 var webgazerVideoFeed = document.getElementById('webgazerVideoFeed');
@@ -99,9 +101,6 @@ define(["jquery"], function($) {
 
                 var overlay = document.createElement('canvas');
                 overlay.id = 'webgazerOverlay';
-                document.body.appendChild(overlay);
-                
-                $("#webgazerOverlay").appendTo("#webgazerVideoDiv");
                 overlay.style.position = 'absolute';
                 overlay.width = width;
                 overlay.height = height;
@@ -109,6 +108,9 @@ define(["jquery"], function($) {
                 overlay.style.left = leftDist;
                 overlay.style.margin = '0px';
 
+                document.body.appendChild(overlay);
+                container.appendChild(overlay);
+                
                 var cl = webgazer.getTracker().clm;
                 function drawLoop() {
                     requestAnimFrame(drawLoop);
@@ -118,7 +120,6 @@ define(["jquery"], function($) {
                     }
                 }
                 drawLoop();
-
             };
 
 
@@ -219,13 +220,14 @@ define(["jquery"], function($) {
 
                 // load video cavas from the webgazer
                 if (params.showvideocanvas) {
-                    setTimeout(setupWebGazerVideoCanvas, 1000);
+                    setTimeout(setupWebGazerVideoCanvas, 500);
                 } else {
                     var miniloop = function () {
                         if (webgazer.isReady()) {
                             $('#webgazerVideoText').text("Webgazer initialized!");
+                            return;
                         } else {
-                            setTimeout(miniloop, 1000);
+                            setTimeout(miniloop, 500);
                         }
                     }
                     miniloop();

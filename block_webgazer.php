@@ -67,8 +67,8 @@ class block_webgazer extends block_base {
         }
 
         if (!$this->iswebgazerinit && $this->sessionid) {
-            $PAGE->requires->js('/blocks/webgazer/js/html2canvas.min.js', true);
-            $PAGE->requires->js('/blocks/webgazer/js/webgazer.no-cache.min.js', true);
+            $PAGE->requires->js(new moodle_url('/blocks/webgazer/js/html2canvas.min.js'));
+            $PAGE->requires->js(new moodle_url('/blocks/webgazer/js/webgazer.min.js'));
         
             $config = get_config('block_webgazer');
 
