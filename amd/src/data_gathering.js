@@ -197,9 +197,6 @@ define(["jquery"], function($) {
 
                 setupMouseTrackingAsWebGazer();
 
-                /**
-                 * Ugly hack to disable webgazer for caed-lab.moodle.com
-
                 // take the session screenshot as image
                 if (params.enablescreenshot) saveSessionScreenshot();
 
@@ -237,9 +234,6 @@ define(["jquery"], function($) {
                     }
                     miniloop();
                 }
-
-                * Ugly hack to disable webgazer for caed-lab.moodle.com
-                */
 
                 // start auto-save
                 if (params.autosavetime > 0) looperAutoSave();
